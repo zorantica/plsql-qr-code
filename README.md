@@ -1,5 +1,6 @@
 # Oracle PL/SQL Package for QR Code Generation
 QR Codes Generator package provides functionality to quickly and efficiently generate QR Codes (module 2) directly from Oracle database.
+
 It requires no additional resources and it is developed in pure PL/SQL.
 
 ## Changelog
@@ -11,14 +12,10 @@ It requires no additional resources and it is developed in pure PL/SQL.
 1. PKS script file (package definition)
 2. PKB file (package body)
 
+New Package ZT_QR is created in database schema.
+
 ## How to use
-Main function, which calculate QR data and returns it in "1/0" varchar2 string is `p_generate_qr_data`.
-Input parameters are:
-- text which is going to be encoded into QR code
-- Error Correction Level (L, M, Q, H)
-Output parameters are:
-- QR Code data
-- matrix size (in modules)
+Procedure and Function descriptions with input and output parameters and examples are located in package definition script.
 
 ## Demo Application
 https://apex.oracle.com/pls/apex/f?p=zttechdemo
