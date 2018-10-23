@@ -1,2 +1,2 @@
 # qr-code
-QR Code PL/SQL package and APEX plug-in
+QR Code PL/SQL package (working) and APEX plug-in (in development)
