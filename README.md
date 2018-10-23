@@ -1,2 +1,2 @@
-# qr-code
-QR Code PL/SQL package (working) and APEX plug-in (in development)
+# Oracle PL/SQL Package for QR Code Generation
+PL/SQL package (working) and APEX Plug-in (in Development)
