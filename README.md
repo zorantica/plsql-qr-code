@@ -5,8 +5,8 @@ It requires no additional resources and it is developed in pure PL/SQL.
 Item-type APEX plugin uses PL/SQL package for calculations and graphical implementation of QR code and simplifies QR code usage in APEX applications.
 
 ## Changelog
-1.0 - Initial Release
-1.1 - Added APEX plugin
+- 1.0 - Initial Release
+- 1.1 - Added APEX plugin
 
 ## Install PL/SQL package
 - download 2 script files from "package" directory 
