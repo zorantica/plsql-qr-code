@@ -1,0 +1,231 @@
+prompt --application/set_environment
+set define off verify off feedback off
+whenever sqlerror exit sql.sqlcode rollback
+--------------------------------------------------------------------------------
+--
+-- ORACLE Application Express (APEX) export file
+--
+-- You should run the script connected to SQL*Plus as the Oracle user
+-- APEX_180100 or as the owner (parsing schema) of the application.
+--
+-- NOTE: Calls to apex_application_install override the defaults below.
+--
+--------------------------------------------------------------------------------
+begin
+wwv_flow_api.import_begin (
+ p_version_yyyy_mm_dd=>'2018.04.04'
+,p_release=>'18.1.0.00.45'
+,p_default_workspace_id=>1622468447055903
+,p_default_application_id=>102
+,p_default_owner=>'TICA'
+);
+end;
+/
+prompt --application/shared_components/plugins/item_type/zttech_qr_code
+begin
+wwv_flow_api.create_plugin(
+ p_id=>wwv_flow_api.id(3866070822043594)
+,p_plugin_type=>'ITEM TYPE'
+,p_name=>'EU.ZTTECH.QRCODE'
+,p_display_name=>'QR Code'
+,p_supported_ui_types=>'DESKTOP'
+,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS:APEX_APPL_PAGE_IG_COLUMNS'
+,p_plsql_code=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'PROCEDURE render_qrcode(',
+'    p_item                IN apex_plugin.t_item,',
+'    p_plugin              IN apex_plugin.t_plugin,',
+'    p_param               IN apex_plugin.t_item_render_param,',
+'    p_result              OUT apex_plugin.t_item_render_result) IS',
+'    ',
+'BEGIN',
+'    if p_param.value is null then',
+'        htp.p(''no data'');',
+'    else',
+'',
+'        -- Printer Friendly Display',
+'        IF p_param.is_printer_friendly THEN',
+'            apex_plugin_util.print_display_only(p_item_name        => p_item.name,',
+'                                                p_display_value    => p_param.value,',
+'                                                p_show_line_breaks => FALSE,',
+'                                                p_escape           => TRUE,',
+'                                                p_attributes       => p_item.element_attributes);',
+'        -- Read Only Display',
+'        ELSIF p_param.is_readonly THEN',
+'            apex_plugin_util.print_hidden_if_readonly(p_item_name           => p_item.name,',
+'                                                      p_value               => p_param.value,',
+'                                                      p_is_readonly         => p_param.is_readonly,',
+'                                                      p_is_printer_friendly => p_param.is_printer_friendly);',
+'',
+'        -- Normal Display',
+'        ELSE',
+'            if p_item.attribute_02 = ''HTML'' then',
+'                ZT_QR.p_qr_as_html_table(',
+'                    p_data => p_param.value,',
+'                    p_error_correction => p_item.attribute_01,',
+'                    p_module_size_in_px => p_item.attribute_03,',
+'                    p_margines => (CASE WHEN p_item.attribute_05 = ''Y'' THEN true ELSE false END)',
+'                );',
+'            elsif p_item.attribute_02 = ''BMP'' then',
+'                ZT_QR.p_qr_as_img_tag_base64(',
+'                    p_data => p_param.value,',
+'                    p_error_correction => p_item.attribute_01,',
+'                    p_image_size_px => p_item.attribute_04,',
+'                    p_margines => p_item.attribute_05',
+'                );',
+'            else',
+'                htp.prn(''Error - unsupported display type.'');',
+'            end if;',
+'            ',
+'        end if;',
+'        ',
+'    end if;',
+'',
+'    p_result.is_navigable := false;',
+'    ',
+'END render_qrcode;'))
+,p_api_version=>2
+,p_render_function=>'render_qrcode'
+,p_standard_attributes=>'VISIBLE:FORM_ELEMENT:SESSION_STATE:SOURCE'
+,p_substitute_attributes=>true
+,p_subscribe_plugin_settings=>true
+,p_help_text=>wwv_flow_string.join(wwv_flow_t_varchar2(
+'QR plugin version 1.0.0',
+'Usage and details on GitHub',
+'https://github.com/zorantica/plsql-qr-code'))
+,p_version_identifier=>'1.0.0.0'
+,p_about_url=>'https://github.com/zorantica/plsql-qr-code'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(3894394845871613)
+,p_plugin_id=>wwv_flow_api.id(3866070822043594)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>1
+,p_display_sequence=>10
+,p_prompt=>'Error correction level'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'L'
+,p_supported_ui_types=>'DESKTOP'
+,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS:APEX_APPL_PAGE_IG_COLUMNS'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3894972108873379)
+,p_plugin_attribute_id=>wwv_flow_api.id(3894394845871613)
+,p_display_sequence=>10
+,p_display_value=>'L - Low (7% of data)'
+,p_return_value=>'L'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3895338136875798)
+,p_plugin_attribute_id=>wwv_flow_api.id(3894394845871613)
+,p_display_sequence=>20
+,p_display_value=>'M - Medium (15% of data)'
+,p_return_value=>'M'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3895786621877652)
+,p_plugin_attribute_id=>wwv_flow_api.id(3894394845871613)
+,p_display_sequence=>30
+,p_display_value=>'Q - Quartile (25% of data)'
+,p_return_value=>'Q'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3896152486878538)
+,p_plugin_attribute_id=>wwv_flow_api.id(3894394845871613)
+,p_display_sequence=>40
+,p_display_value=>'H - High (30% of data)'
+,p_return_value=>'H'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(3902849335478270)
+,p_plugin_id=>wwv_flow_api.id(3866070822043594)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>2
+,p_display_sequence=>20
+,p_prompt=>'Display Type'
+,p_attribute_type=>'SELECT LIST'
+,p_is_required=>true
+,p_default_value=>'HTML'
+,p_supported_ui_types=>'DESKTOP'
+,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS:APEX_APPL_PAGE_IG_COLUMNS'
+,p_is_translatable=>false
+,p_lov_type=>'STATIC'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3903436378479691)
+,p_plugin_attribute_id=>wwv_flow_api.id(3902849335478270)
+,p_display_sequence=>10
+,p_display_value=>'HTML Table'
+,p_return_value=>'HTML'
+);
+wwv_flow_api.create_plugin_attr_value(
+ p_id=>wwv_flow_api.id(3903811557481331)
+,p_plugin_attribute_id=>wwv_flow_api.id(3902849335478270)
+,p_display_sequence=>20
+,p_display_value=>'BMP Image'
+,p_return_value=>'BMP'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(3905650734512391)
+,p_plugin_id=>wwv_flow_api.id(3866070822043594)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>3
+,p_display_sequence=>30
+,p_prompt=>'Module size'
+,p_attribute_type=>'NUMBER'
+,p_is_required=>true
+,p_default_value=>'8'
+,p_display_length=>5
+,p_max_length=>2
+,p_unit=>'pixels'
+,p_supported_ui_types=>'DESKTOP'
+,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS:APEX_APPL_PAGE_IG_COLUMNS'
+,p_is_translatable=>false
+,p_depending_on_attribute_id=>wwv_flow_api.id(3902849335478270)
+,p_depending_on_has_to_exist=>true
+,p_depending_on_condition_type=>'EQUALS'
+,p_depending_on_expression=>'HTML'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(3907039392529244)
+,p_plugin_id=>wwv_flow_api.id(3866070822043594)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>4
+,p_display_sequence=>40
+,p_prompt=>'Image size'
+,p_attribute_type=>'NUMBER'
+,p_is_required=>true
+,p_display_length=>5
+,p_max_length=>4
+,p_unit=>'pixels'
+,p_is_translatable=>false
+,p_depending_on_attribute_id=>wwv_flow_api.id(3902849335478270)
+,p_depending_on_has_to_exist=>true
+,p_depending_on_condition_type=>'EQUALS'
+,p_depending_on_expression=>'BMP'
+);
+wwv_flow_api.create_plugin_attribute(
+ p_id=>wwv_flow_api.id(3907614779532992)
+,p_plugin_id=>wwv_flow_api.id(3866070822043594)
+,p_attribute_scope=>'COMPONENT'
+,p_attribute_sequence=>5
+,p_display_sequence=>50
+,p_prompt=>'Margines'
+,p_attribute_type=>'CHECKBOX'
+,p_is_required=>true
+,p_default_value=>'N'
+,p_supported_ui_types=>'DESKTOP'
+,p_supported_component_types=>'APEX_APPLICATION_PAGE_ITEMS:APEX_APPL_PAGE_IG_COLUMNS'
+,p_is_translatable=>false
+);
+end;
+/
+begin
+wwv_flow_api.import_end(p_auto_install_sup_obj => nvl(wwv_flow_application_install.get_auto_install_sup_obj, false), p_is_component_import => true);
+commit;
+end;
+/
+set verify on feedback on define on
+prompt  ...done

@@ -148,6 +148,24 @@ FUNCTION f_qr_as_bmp(
 
 
 /*
+Procedure shows QR code as black and white BMP image
+Printed is HTML img tag with base64 image in it
+
+IN parameters:
+p_data - data that is going to be encoded into QR code
+p_error_correction - error correction level (values L, M, Q or H)
+p_image_size_px - image size in pixels
+p_margines - should white margine around QR code (4 modules wide) be generated
+*/
+PROCEDURE p_qr_as_img_tag_base64(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_image_size_px pls_integer,
+    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    );
+
+
+/*
 Utility procedure which saves generated BMP file containing QR code on server side (directory)
 */
 PROCEDURE p_save_file(

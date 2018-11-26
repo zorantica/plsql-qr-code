@@ -2083,6 +2083,29 @@ END f_qr_as_bmp;
 
 
 
+PROCEDURE p_qr_as_img_tag_base64(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_image_size_px pls_integer,
+    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    ) IS
+    
+    lbBlob blob;
+    l_step PLS_INTEGER := 12000; -- make sure you set a multiple of 3 not higher than 24573
+    
+BEGIN
+    lbBlob := f_qr_as_bmp(p_data, p_error_correction, p_margines);
+    
+    htp.prn('<img src="data:image/bmp;base64, ');
+    
+    FOR i IN 0 .. TRUNC((DBMS_LOB.getlength(lbBlob) - 1 )/l_step) LOOP
+        htp.prn( UTL_RAW.cast_to_varchar2(UTL_ENCODE.base64_encode(DBMS_LOB.substr(lbBlob, l_step, i * l_step + 1))) );
+    END LOOP;
+
+    htp.prn('" alt="qr code" width="' || p_image_size_px || 'px" height = "' || p_image_size_px || 'px" />');
+    
+END;
+
 PROCEDURE p_save_file(
     p_document blob,
     p_file_name varchar2,

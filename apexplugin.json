@@ -1,0 +1,35 @@
+{
+  "name" : "QRCode",
+  "version" : "1.0.0",
+  "description" : "QRCode is an item type plugin that provides functionality to show QR Code for desired input value. QR Code can be rendered as HTML table or BMP image.",
+  "keywords" : ["qr code"],
+  "homepage" : "https://github.com/zorantica/plsql-qr-code",
+  "bugs" : {
+    "url" : "https://github.com/zorantica/plsql-qr-code/issues",
+    "email" : "zoran.tica@gmail.com"
+  },
+  "license" : "MIT",
+  "author" : {
+    "name" : "Zoran Tica",
+    "email" : "zoran.tica@gmail.com",
+    "url" : "http://www.zt-tech.eu",
+    "twitter" : "zoran_tica",
+    "donationUrl" : "https://paypal.me/zorantica"
+  },
+  "repository" : {
+    "type" : "git",
+    "url" : "https://github.com/zorantica/plsql-qr-code"
+  },
+  "oracle" : {
+    "versions" : ["11.2.0.1", "12.1.0.1"],
+    "apex" : {
+      "versions" : ["18.1.0"],
+      "plugin" : {
+        "internalName" : "EU.ZTTECH.QRCODE",
+        "type" : "item",
+        "demo" : "https://apex.oracle.com/pls/apex/f?p=zttechdemo",
+        "previewImage" : "https://github.com/zorantica/qr-code/blob/master/preview.jpg"
+      }
+    }
+  }
+}
