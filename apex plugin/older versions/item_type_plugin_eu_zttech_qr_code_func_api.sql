@@ -97,7 +97,7 @@ wwv_flow_api.create_plugin(
 ,p_subscribe_plugin_settings=>true
 ,p_help_text=>'QR plugin version 1.0.0'
 ,p_version_identifier=>'1.0.0.0'
-,p_about_url=>'http://www.zt-tech.eu/download.html'
+,p_about_url=>'https://github.com/zorantica/plsql-qr-code'
 ,p_files_version=>29
 );
 wwv_flow_api.create_plugin_attribute(
