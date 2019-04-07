@@ -13,7 +13,8 @@
     "name" : "Zoran Tica",
     "email" : "zoran.tica@gmail.com",
     "url" : "http://www.zt-tech.eu",
-    "twitter" : "zoran_tica"
+    "twitter" : "zoran_tica",
+    "donationUrl" : "https://paypal.me/zorantica"
   },
   "repository" : {
     "type" : "git",
