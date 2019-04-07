@@ -13,12 +13,11 @@
     "name" : "Zoran Tica",
     "email" : "zoran.tica@gmail.com",
     "url" : "http://www.zt-tech.eu",
-    "twitter" : "zoran_tica",
-    "donationUrl" : "https://paypal.me/zorantica"
+    "twitter" : "zoran_tica"
   },
   "repository" : {
     "type" : "git",
-    "url" : "https://github.com/zorantica/plsql-qr-code"
+    "url" : "https://github.com/zorantica/plsql-qr-code.git"
   },
   "oracle" : {
     "versions" : ["11.2.0.1", "12.1.0.1"],
