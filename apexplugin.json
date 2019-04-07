@@ -20,7 +20,7 @@
     "url" : "https://github.com/zorantica/plsql-qr-code.git"
   },
   "oracle" : {
-    "versions" : ["11.2.0.1", "12.1.0.1"],
+    "versions" : ["11.2.0.1", "12.1.0.1", "12.2.0.1", "18.0.0.0.0" ],
     "apex" : {
       "versions" : ["18.1.0"],
       "plugin" : {
