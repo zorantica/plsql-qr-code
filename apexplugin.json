@@ -28,7 +28,7 @@
         "internalName" : "EU.ZTTECH.QRCODE",
         "type" : "item",
         "demo" : "https://apex.oracle.com/pls/apex/f?p=zttechdemo",
-        "previewImage" : "https://github.com/zorantica/qr-code/blob/master/preview.jpg"
+        "previewImage" : "https://raw.githubusercontent.com/zorantica/plsql-qr-code/master/preview.jpg"
       }
     }
   }
