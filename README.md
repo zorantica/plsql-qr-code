@@ -7,6 +7,7 @@ Item-type APEX plugin uses PL/SQL package for calculations and graphical impleme
 ## Changelog
 - 1.0 - Initial Release
 - 1.1 - Added APEX plugin
+- 1.2 - UTF-8 support
 
 ## Install PL/SQL package
 - download 2 script files from "package" directory 
