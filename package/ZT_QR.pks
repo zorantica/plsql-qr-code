@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE TICA.ZT_QR AS
+CREATE OR REPLACE PACKAGE ZT_QR AS
 /******************************************************************************
     Author:     Zoran Tica
                 ZT-TECH, racunalniške storitve s.p.
