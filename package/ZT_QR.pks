@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE ZT_QR AS
+CREATE OR REPLACE PACKAGE TICA.ZT_QR AS
 /******************************************************************************
     Author:     Zoran Tica
                 ZT-TECH, racunalniške storitve s.p.
@@ -9,11 +9,12 @@ CREATE OR REPLACE PACKAGE ZT_QR AS
     REVISIONS:
     Ver        Date        Author           Description
     ---------  ----------  ---------------  ------------------------------------
-    0.1        18/08/2018  Zoran Tica       1. Created this package.
+    1.0        18/08/2018  Zoran Tica       First version of package.
+    1.1        26/05/2019  Zoran Tica       Added UTF-8 support, fixed minor BUGs for debug display
 
 
     ----------------------------------------------------------------------------
-    Copyright (C) 2017 - Zoran Tica
+    Copyright (C) 2018 - Zoran Tica
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal

@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE BODY ZT_QR AS
+CREATE OR REPLACE PACKAGE BODY TICA.ZT_QR AS
 
     --C O N S T A N T S
 
@@ -6,7 +6,7 @@ CREATE OR REPLACE PACKAGE BODY ZT_QR AS
     cNumericMode CONSTANT pls_integer := 1; 
     cAlphanumericMode CONSTANT pls_integer := 2; 
     cByteMode CONSTANT pls_integer := 3; 
-    cDoublebyteMode CONSTANT pls_integer := 4; 
+    cKanjiMode CONSTANT pls_integer := 4; 
 
 
     --V A R I A B L E S
@@ -547,8 +547,8 @@ BEGIN
         CASE p_type
             WHEN cNumericMode THEN 'Numeric Mode'
             WHEN cAlphanumericMode THEN 'Alphanumeric Mode'
-            WHEN cByteMode THEN 'Byte Mode (ISO-8859-1)'
-            WHEN cDoublebyteMode THEN 'Kanji mode (double-byte)'
+            WHEN cByteMode THEN 'Byte Mode'
+            WHEN cKanjiMode THEN 'Kanji mode'
             ELSE null
             END;
             
@@ -561,31 +561,58 @@ END;
 function returns QR code mode depending of data going to be encoded:
 1 - Numeric mode (for decimal digits 0 through 9)
 2 - Alphanumeric mode (specific table encoded in this function)
-3 - Byte mode (ISO-8859-1 character set)
-4 - Double-byte mode (UTF-8, Kanji...)
+3 - Byte mode (ISO-8859-1 character set or UTF-8)
+4 - Double-byte mode (Kanji)
+
+UTF-8 ascii values for kanji: 
+3000 - 303f: Japanese-style punctuation
+3040 - 309f: Hiragana
+30a0 - 30ff: Katakana
+ff00 - ff9f: Full-width Roman characters and half-width Katakana
+4e00 - 9faf: CJK unified ideographs - Common and uncommon Kanji
+3400 - 4dbf: CJK unified ideographs Extension A - Rare Kanji
+
 */
 FUNCTION f_get_mode(p_data varchar2) RETURN pls_integer IS
     lnType pls_integer := 0;
-    lcChar varchar2(1);
+    lcChar varchar2(1 char);
+
+    FUNCTION f_is_char_kanji(p_char varchar2) RETURN boolean IS
+        lnAscii number := ascii(p_char);
+        lbReturn boolean := false;
+    BEGIN
+        if 
+            lnAscii between to_number('3000', 'xxxx') and to_number('30FF', 'xxxx') or
+            lnAscii between to_number('FF00', 'xxxx') and to_number('FF9F', 'xxxx') or
+            lnAscii between to_number('4E00', 'xxxx') and to_number('9FAF', 'xxxx') or
+            lnAscii between to_number('3400', 'xxxx') and to_number('4DBF', 'xxxx') 
+            then
+            lbReturn := true;
+        end if;
+        
+        RETURN lbReturn;
+    END; 
+
 BEGIN
     FOR t IN 1 .. length(p_data) LOOP
         lcChar := substr(p_data, t, 1);
 
         if '0123456789' like '%' || lcChar || '%' then  --numeric mode (1)
+            p_debug(f_mode_name(cNumericMode) || ': char ' || lcChar, 2);
             lnType := greatest(lnType, cNumericMode);
             
         elsif 'ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:' like '%' || lcChar || '%' then  --alphanumeric mode (2)
+            p_debug(f_mode_name(cAlphanumericMode) || ': char ' || lcChar, 2);
             lnType := greatest(lnType, cAlphanumericMode);
         
-        elsif ascii(lcChar) <= 255 then  --Byte mode (3)
+        elsif not f_is_char_kanji(lcChar) then  --Byte mode including UTF-8 except kanji (3)
+            p_debug(f_mode_name(cByteMode) || ': char ' || lcChar, 2);
             lnType := greatest(lnType, cByteMode);
 
-        else  --double-byte mode (UTF-8) (4)
-            lnType := cDoublebyteMode;
+        else  --kanji mode (4)
+            lnType := cKanjiMode;
             
         end if;
-
-        p_debug('mode: ' || lnType || ' for char ' || lcChar, 2);
     
     END LOOP;
 
@@ -627,7 +654,7 @@ BEGIN
             WHEN cNumericMode THEN '0001'
             WHEN cAlphanumericMode THEN '0010'
             WHEN cByteMode THEN '0100'
-            WHEN cDoublebyteMode THEN '1000'
+            WHEN cKanjiMode THEN '1000'
             ELSE null
             END;
             
@@ -648,8 +675,9 @@ FUNCTION f_char_count_indicator(p_data varchar2) RETURN varchar2 IS
     lnCCILength pls_integer;
     
 BEGIN
-    --length to binary
-    lnLength := length(p_data);
+    --length in bytes to binary; in case of UTF-8 one char can be more than 1 byte
+    --that's why lengthb function is used instead of length
+    lnLength := lengthb(p_data);
     lcIndicator := f_integer_2_binary(lnLength);
 
     p_debug('CCI Binary: ' || lcIndicator, 2);
@@ -661,7 +689,7 @@ BEGIN
                 WHEN cNumericMode THEN 10
                 WHEN cAlphanumericMode THEN 9
                 WHEN cByteMode THEN 8
-                WHEN cDoublebyteMode THEN 8
+                WHEN cKanjiMode THEN 8
                 ELSE 0
                 END;
     elsif gpnVersion between 10 and 26 then
@@ -670,7 +698,7 @@ BEGIN
                 WHEN cNumericMode THEN 12
                 WHEN cAlphanumericMode THEN 11
                 WHEN cByteMode THEN 16
-                WHEN cDoublebyteMode THEN 10
+                WHEN cKanjiMode THEN 10
                 ELSE 0
                 END;
 
@@ -680,7 +708,7 @@ BEGIN
                 WHEN cNumericMode THEN 14
                 WHEN cAlphanumericMode THEN 13
                 WHEN cByteMode THEN 16
-                WHEN cDoublebyteMode THEN 12
+                WHEN cKanjiMode THEN 12
                 ELSE 0
                 END;
     
@@ -731,7 +759,7 @@ FUNCTION f_get_version(
     
 BEGIN
     --initial values to determine version
-    lnLength := length(p_data);
+    lnLength := lengthb(p_data);
 
     /*
     values are separated in sets; each set has 4 values
@@ -832,6 +860,7 @@ FUNCTION f_encode_data(
     lnCounter pls_integer := 1;
     lcSub varchar2(3);
     lnReqNumOfBits pls_integer;
+    lcChar varchar2(1 char);
 
     --function returns value of character in alphanumeric mode
     FUNCTION f_get_code(p_char varchar2) RETURN pls_integer IS
@@ -910,10 +939,12 @@ BEGIN
         
     elsif gpnMode = cByteMode then
         FOR t IN 1 .. length(p_data) LOOP
-            lcData := lcData || lpad(f_integer_2_binary( ascii(substr(p_data, t, 1)) ), 8, '0');
+            lcChar := substr(p_data, t, 1);
+            lcData := lcData || lpad(f_integer_2_binary( ascii(lcChar) ), 8 * lengthb(lcChar), '0');
+            
         END LOOP;
         
-    elsif gpnMode = cDoublebyteMode then
+    elsif gpnMode = cKanjiMode then
         --TODO for Kanji mode
         null;
     end if;
@@ -924,12 +955,12 @@ BEGIN
     lnReqNumOfBits := gprErrCorInfo(gpnVersion || '-' || p_error_correction).total_no_of_data_cw * 8;
     p_debug('Required number of bits: ' || lnReqNumOfBits, 2);
     
-    if lnReqNumOfBits - length(p_data) >= 4 then
+    if lnReqNumOfBits - lengthb(p_data) >= 4 then
         lcData := lcData || '0000';
         p_debug('Terminator zeros: 0000', 2);
     else
-        lcData := rpad(lcData, lnReqNumOfBits - length(p_data), '0');
-        p_debug('Terminator zeros: ' || rpad(null, lnReqNumOfBits - length(p_data), '0'), 2);
+        lcData := rpad(lcData, lnReqNumOfBits - lengthb(p_data), '0');
+        p_debug('Terminator zeros: ' || rpad(null, lnReqNumOfBits - lengthb(p_data), '0'), 2);
     end if;
 
     --additional right padding with 0 to reach a string length multiple of 8
