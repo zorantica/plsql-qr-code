@@ -597,11 +597,11 @@ BEGIN
     FOR t IN 1 .. length(p_data) LOOP
         lcChar := substr(p_data, t, 1);
 
-        if '0123456789' like '%' || lcChar || '%' then  --numeric mode (1)
+        if instr('0123456789', lcChar) > 0 then  --numeric mode (1)
             p_debug(f_mode_name(cNumericMode) || ': char ' || lcChar, 2);
             lnType := greatest(lnType, cNumericMode);
             
-        elsif 'ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:' like '%' || lcChar || '%' then  --alphanumeric mode (2)
+        elsif instr('ABCDEFGHIJKLMNOPQRSTUVWXYZ $%*+-./:', lcChar) > 0 then  --alphanumeric mode (2)
             p_debug(f_mode_name(cAlphanumericMode) || ': char ' || lcChar, 2);
             lnType := greatest(lnType, cAlphanumericMode);
         
@@ -867,9 +867,9 @@ FUNCTION f_encode_data(
         lnCode pls_integer;
     BEGIN
         --0 - 9
-        if '0123456789' like '%' || p_char || '%' then
+        if instr('0123456789', p_char) > 0 then
             lnCode := to_number(p_char);
-        elsif 'ABCDEFGHIJKLMNOPQRSTUVWXYZ' like '%' || p_char || '%' then
+        elsif instr('ABCDEFGHIJKLMNOPQRSTUVWXYZ', p_char) > 0 then
             lnCode := ascii(p_char) - 55;
         elsif p_char = ' ' then 
             lnCode := 36;
