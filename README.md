@@ -21,6 +21,17 @@ New Package ZT_QR is created in database schema.
 ## How to use PL/SQL package
 Procedure and Function descriptions with input and output parameters and examples are located in package definition script.
 
+## Use JPG images instead of BMP
+BI Publisher (and potentialy some other software) is not displaying QR code BMP images correctly.
+Solution is to convert BMP images to JPG using JAVA in database - thanks to mr Hamzeh Fathi (hfathi54@gmail.com).
+How to install and use this functionality:
+- download 2 script files from "BMP2JPG" directory
+- install JAVA source from file "01 - bmp2jpg java.sql"
+- install PL/SQL function wrapper for JAVA source from file "02 - plsql function.sql"; function can be installed as standalone or in some package (for example in QR code package)
+
+That's it. Usage example for standalone function can be found in file "example.sql".
+Remark: this way images also get smaller in size.
+
 ## Install APEX plugin
 - First install PL/SQL package from "package" directory
 - Then import plugin file "item_type_plugin_eu_zttech_qr_code.sql" from "apex plugin" directory into your application
