@@ -954,14 +954,16 @@ BEGIN
     --terminator zeros
     lnReqNumOfBits := gprErrCorInfo(gpnVersion || '-' || p_error_correction).total_no_of_data_cw * 8;
     p_debug('Required number of bits: ' || lnReqNumOfBits, 2);
+
+    p_debug('Terminator zeros to add: ' || (lnReqNumOfBits - lengthb(lcData)), 2);
     
-    if lnReqNumOfBits - lengthb(p_data) >= 4 then
+    if lnReqNumOfBits - lengthb(lcData) >= 4 then
         lcData := lcData || '0000';
-        p_debug('Terminator zeros: 0000', 2);
     else
-        lcData := rpad(lcData, lnReqNumOfBits - lengthb(p_data), '0');
-        p_debug('Terminator zeros: ' || rpad(null, lnReqNumOfBits - lengthb(p_data), '0'), 2);
+        lcData := rpad(lcData, lnReqNumOfBits, '0');
     end if;
+
+    p_debug('Data with right padding (number of bits ' || length(lcData) || '): ' || lcData, 2);
 
     --additional right padding with 0 to reach a string length multiple of 8
      LOOP

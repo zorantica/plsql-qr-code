@@ -13,6 +13,7 @@ create or replace PACKAGE      ZT_QR AS
     1.1        26/05/2019  Zoran Tica       Added UTF-8 support, fixed minor BUGs for debug display
     1.2        15/12/2019  Zoran Tica       Fixed "_" and "%" BUG
     1.3        13/03/2020  Zoran Tica       Added function f_qr_as_long_raw
+    1.4        07/01/2021  Zoran Tica       Terminator BUG
 
 
     ----------------------------------------------------------------------------
@@ -81,6 +82,7 @@ p_data - data that is going to be encoded into QR code
 p_error_correction - error correction level (values L, M, Q or H)
 p_debug - should DBMS OUTPUT be printed
 p_debug_level - debug level (1, 2, 3...) - details to be printed in debug output
+p_masking_out - which masking (values 0-7) should be displayed; null -> the best masking will be calculated and selected automatically 
 
 OUT parameters:
 p_qr - generated QR code data in format "row (1110100010100) || newline (chr 10) || row || newline..."
