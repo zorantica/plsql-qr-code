@@ -87,6 +87,24 @@ p_masking_out - which masking (values 0-7) should be displayed; null -> the best
 OUT parameters:
 p_qr - generated QR code data in format "row (1110100010100) || newline (chr 10) || row || newline..."
 p_matrix_size - matrix size in modules (21, 25, 29...)
+
+
+Testing code (enable DBMS OUTPUT for debug!):
+DECLARE
+    lcQR varchar2(32727);
+    lnMatrixSize pls_integer;
+BEGIN
+    ZT_QR.p_qr_debug(
+        p_data => 'http://www.zt-tech.eu',
+        p_error_correction => 'Q', 
+        p_debug => true,
+        p_debug_level => 2,
+        p_qr => lcQR,
+        p_matrix_size => lnMatrixSize
+        );
+END;
+/
+
 */
 PROCEDURE p_qr_debug(
     p_data varchar2,
