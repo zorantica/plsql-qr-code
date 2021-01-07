@@ -1987,6 +1987,130 @@ BEGIN
 END unsigned_int;
 
 
+FUNCTION f_qr_as_long_raw(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    ) RETURN long raw IS
+    
+    lcQR varchar2(32727);
+    lnMatrixSize pls_integer;
+    lnZeros pls_integer;
+    lnImageBytes pls_integer;
+    lnWidthHeight pls_integer;
+
+    lbBlob long raw;
+    lrLine raw(500);
+    
+BEGIN
+    if p_data is null then
+        return null;
+        RAISE_APPLICATION_ERROR(-20000, 'no data to display.');
+    end if;
+
+    p_generate_qr_data(
+        p_data => p_data,
+        p_error_correction => p_error_correction, 
+        p_qr => lcQR,
+        p_matrix_size => lnMatrixSize
+        );
+
+
+    --DBMS_LOB.createTemporary(lbBlob, true);
+
+    --Header
+    lnWidthHeight := lnMatrixSize + (CASE WHEN p_margines = 'Y' THEN 8 ELSE 0 END);
+    lnImageBytes := lnWidthHeight * lnWidthHeight * 8;
+    
+    dbms_lob.append(lbBlob, utl_raw.cast_to_raw('BM')); -- Pos  0 - fixed
+    dbms_lob.append(lbBlob, unsigned_int(14 + 40 + 8 + lnImageBytes));    -- Pos  2 - file size (62 as header size + data size + color pallete)
+    dbms_lob.append(lbBlob, unsigned_int(0));      -- Pos 6, unused / reserved, value 0
+    dbms_lob.append(lbBlob, unsigned_int(14 + 40 + 8));      -- Pos 10, offset to image data - header size + information size + color pallete
+
+    -- Information
+    dbms_lob.append(lbBlob, unsigned_int(40));    -- Pos 14 - size of information header (always 40)
+    dbms_lob.append(lbBlob, unsigned_int(lnWidthHeight * 8));    -- Pos 18 - width
+    dbms_lob.append(lbBlob, unsigned_int(lnWidthHeight * 8));   -- Pos 22 - height
+    dbms_lob.append(lbBlob, unsigned_short(1));        -- Pos 26, planes
+    dbms_lob.append(lbBlob, unsigned_short(1));        -- Pos 28, bits per pixel
+    dbms_lob.append(lbBlob, unsigned_int(0));        -- Pos 30, no compression
+    dbms_lob.append(lbBlob, unsigned_int(lnImageBytes)); -- Pos 34 - image data size
+    dbms_lob.append(lbBlob, unsigned_int(0));      -- Pos 38, x pixels/meter
+    dbms_lob.append(lbBlob, unsigned_int(0));      -- Pos 42, y pixels/meter
+    dbms_lob.append(lbBlob, unsigned_int(0));         -- Pos 46, Number of colors
+    dbms_lob.append(lbBlob, unsigned_int(0));         -- Pos 50, Important colors
+
+    --Colors
+    dbms_lob.append(lbBlob, unsigned_int(16777215));  -- White (FF FF FF 00)
+    dbms_lob.append(lbBlob, unsigned_int(0));         -- Black (00 00 00 00)
+    
+    
+    
+    --Data
+    
+    --zeros at the end of the scan line (scan line in bytes must be mod 4)
+    lnZeros := 0;
+    LOOP
+        EXIT WHEN (lnWidthHeight + lnZeros) mod 4 = 0;
+        lnZeros := lnZeros + 1;
+    END LOOP;
+    
+    --bottom margine
+    if p_margines = 'Y' then
+        lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), lnWidthHeight + lnZeros);
+        
+        FOR t IN 1 .. 32 LOOP
+            dbms_lob.append(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    end if;
+    
+    --data for scan lines
+    FOR r IN REVERSE 1 .. lnMatrixSize LOOP
+        --first prepare scan line as raw data
+        if p_margines = 'Y' then
+            --left margine
+            lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), 4);
+        else
+            --no margines
+            lrLine := null;
+        end if;
+        
+        --data from matrix
+        FOR c IN 1 .. lnMatrixSize LOOP
+            lrLine := lrLine || utl_raw.cast_to_raw(chr(
+                CASE WHEN substr(lcQR, (r - 1) * (lnMatrixSize + 1) + c, 1) = '1' THEN 255 ELSE 0 END
+                ));
+        END LOOP;
+
+        --right margine
+        if p_margines = 'Y' then
+            lrLine := lrLine || utl_raw.copies( utl_raw.cast_to_raw(chr(0)), 4);
+        end if;
+
+        --trailing zeroes (mod 4)
+        FOR c IN 1 .. lnZeros LOOP
+            lrLine := lrLine || utl_raw.cast_to_raw(chr(0));
+        END LOOP;
+        
+        --8 scan lines in file because module is 8x8 pixels
+        FOR t IN 1 .. 8 LOOP
+            dbms_lob.append(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    END LOOP;
+
+    --top margine (4 modules)
+    if p_margines = 'Y' then
+        lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), lnWidthHeight + lnZeros);
+        
+        FOR t IN 1 .. 32 LOOP
+            dbms_lob.append(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    end if;
+
+    RETURN lbBlob;
+END f_qr_as_long_raw;
+
+
 
 FUNCTION f_qr_as_bmp(
     p_data varchar2,  --data going to be encoded into QR code
@@ -2112,6 +2236,126 @@ BEGIN
 END f_qr_as_bmp;
 
 
+
+FUNCTION f_qr_as_long_raw(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    ) RETURN long raw IS
+    
+    lcQR varchar2(32727);
+    lnMatrixSize pls_integer;
+    lnZeros pls_integer;
+    lnImageBytes pls_integer;
+    lnWidthHeight pls_integer;
+
+    lbBlob long raw;
+    lrLine raw(500);
+    
+BEGIN
+    if p_data is null then
+        return null;
+        RAISE_APPLICATION_ERROR(-20000, 'no data to display.');
+    end if;
+
+    p_generate_qr_data(
+        p_data => p_data,
+        p_error_correction => p_error_correction, 
+        p_qr => lcQR,
+        p_matrix_size => lnMatrixSize
+        );
+
+    --Header
+    lnWidthHeight := lnMatrixSize + (CASE WHEN p_margines = 'Y' THEN 8 ELSE 0 END);
+    lnImageBytes := lnWidthHeight * lnWidthHeight * 8;
+    
+    lbBlob := utl_raw.concat(lbBlob, utl_raw.cast_to_raw('BM')); -- Pos  0 - fixed
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(14 + 40 + 8 + lnImageBytes));    -- Pos  2 - file size (62 as header size + data size + color pallete)
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));      -- Pos 6, unused / reserved, value 0
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(14 + 40 + 8));      -- Pos 10, offset to image data - header size + information size + color pallete
+
+    -- Information
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(40));    -- Pos 14 - size of information header (always 40)
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(lnWidthHeight * 8));    -- Pos 18 - width
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(lnWidthHeight * 8));   -- Pos 22 - height
+    lbBlob := utl_raw.concat(lbBlob, unsigned_short(1));        -- Pos 26, planes
+    lbBlob := utl_raw.concat(lbBlob, unsigned_short(1));        -- Pos 28, bits per pixel
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));        -- Pos 30, no compression
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(lnImageBytes)); -- Pos 34 - image data size
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));      -- Pos 38, x pixels/meter
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));      -- Pos 42, y pixels/meter
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));         -- Pos 46, Number of colors
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));         -- Pos 50, Important colors
+
+    --Colors
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(16777215));  -- White (FF FF FF 00)
+    lbBlob := utl_raw.concat(lbBlob, unsigned_int(0));         -- Black (00 00 00 00)
+    
+    
+    
+    --Data
+    
+    --zeros at the end of the scan line (scan line in bytes must be mod 4)
+    lnZeros := 0;
+    LOOP
+        EXIT WHEN (lnWidthHeight + lnZeros) mod 4 = 0;
+        lnZeros := lnZeros + 1;
+    END LOOP;
+    
+    --bottom margine
+    if p_margines = 'Y' then
+        lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), lnWidthHeight + lnZeros);
+        
+        FOR t IN 1 .. 32 LOOP
+            lbBlob := utl_raw.concat(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    end if;
+    
+    --data for scan lines
+    FOR r IN REVERSE 1 .. lnMatrixSize LOOP
+        --first prepare scan line as raw data
+        if p_margines = 'Y' then
+            --left margine
+            lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), 4);
+        else
+            --no margines
+            lrLine := null;
+        end if;
+        
+        --data from matrix
+        FOR c IN 1 .. lnMatrixSize LOOP
+            lrLine := lrLine || utl_raw.cast_to_raw(chr(
+                CASE WHEN substr(lcQR, (r - 1) * (lnMatrixSize + 1) + c, 1) = '1' THEN 255 ELSE 0 END
+                ));
+        END LOOP;
+
+        --right margine
+        if p_margines = 'Y' then
+            lrLine := lrLine || utl_raw.copies( utl_raw.cast_to_raw(chr(0)), 4);
+        end if;
+
+        --trailing zeroes (mod 4)
+        FOR c IN 1 .. lnZeros LOOP
+            lrLine := lrLine || utl_raw.cast_to_raw(chr(0));
+        END LOOP;
+        
+        --8 scan lines in file because module is 8x8 pixels
+        FOR t IN 1 .. 8 LOOP
+            lbBlob := utl_raw.concat(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    END LOOP;
+
+    --top margine (4 modules)
+    if p_margines = 'Y' then
+        lrLine := utl_raw.copies( utl_raw.cast_to_raw(chr(0)), lnWidthHeight + lnZeros);
+        
+        FOR t IN 1 .. 32 LOOP
+            lbBlob := utl_raw.concat(lbBlob, utl_raw.substr(lrLine, 1, lnWidthHeight + lnZeros));
+        END LOOP;
+    end if;
+
+    RETURN lbBlob;
+END f_qr_as_long_raw;
 
 
 PROCEDURE p_qr_as_img_tag_base64(

@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE ZT_QR AS
+create or replace PACKAGE      ZT_QR AS
 /******************************************************************************
     Author:     Zoran Tica
                 ZT-TECH, racunalniške storitve s.p.
@@ -11,6 +11,8 @@ CREATE OR REPLACE PACKAGE ZT_QR AS
     ---------  ----------  ---------------  ------------------------------------
     1.0        18/08/2018  Zoran Tica       First version of package.
     1.1        26/05/2019  Zoran Tica       Added UTF-8 support, fixed minor BUGs for debug display
+    1.2        15/12/2019  Zoran Tica       Fixed "_" and "%" BUG
+    1.3        13/03/2020  Zoran Tica       Added function f_qr_as_long_raw
 
 
     ----------------------------------------------------------------------------
@@ -147,6 +149,12 @@ FUNCTION f_qr_as_bmp(
     p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
     ) RETURN blob;
 
+FUNCTION f_qr_as_long_raw(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    ) RETURN long raw;
+
 
 /*
 Procedure shows QR code as black and white BMP image
@@ -176,4 +184,3 @@ PROCEDURE p_save_file(
     );
 
 END ZT_QR;
-/
