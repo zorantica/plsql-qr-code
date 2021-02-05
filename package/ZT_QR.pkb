@@ -741,7 +741,7 @@ BEGIN
     
     
     RETURN lcIndicator;
-END;
+END f_char_count_indicator;
 
 
 /*
@@ -953,7 +953,7 @@ BEGIN
     --data encoding - different for different modes 
     if gpnMode = cNumericMode then
         LOOP
-            lcSub := ltrim(substr(p_data, lnCounter, 3), '0');
+            lcSub := substr(p_data, lnCounter, 3);
             
             p_debug(lcSub, 2);
             
