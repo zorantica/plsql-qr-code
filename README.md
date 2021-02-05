@@ -12,6 +12,7 @@ Item-type APEX plugin uses PL/SQL package for calculations and graphical impleme
 - 1.3 - "_" and "%" BUG resolved (Franz.Apeltauer@prinzhorn-holding.com, thank You for kind help!)
 - 1.4 - added function f_qr_as_long_raw
 - 1.5 - terminator zeroes BUG solved (Markus Lobedann, thank You for kind help!)
+- 1.6 - older databases compatilbility (10g)
 
 ## Install PL/SQL package
 - download 2 script files from "package" directory 

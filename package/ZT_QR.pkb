@@ -101,6 +101,7 @@ BEGIN
   RETURN result;
 END bin2dec;
 
+/*
 FUNCTION f_integer_2_binary(p_integer pls_integer) RETURN varchar2 IS
     lcBinary varchar2(100);
 BEGIN
@@ -111,8 +112,26 @@ BEGIN
 
     RETURN lcBinary;
 END;
+*/
 
+--function changed to pure PL/SQL version 
+--also compatible with older databases (10g)
+FUNCTION f_integer_2_binary(p_integer pls_integer) RETURN varchar2 IS
+    lcBinary varchar2(100);
+    lnTemp number := p_integer;
+   
+BEGIN
+    if p_integer <> 0 then
+        WHILE ( lnTemp > 0 ) LOOP
+            lcBinary := mod(lnTemp, 2) || lcBinary;
+            lnTemp := trunc( lnTemp / 2 );
+        END LOOP;
+    else
+        lcBinary := '0';
+    end if;
 
+    RETURN lcBinary;
+END f_integer_2_binary;
 
 
 --INIT FUNCS AND PROCS
@@ -756,6 +775,32 @@ FUNCTION f_get_version(
     lnElements pls_integer;
     lnPosition pls_integer;
 
+
+    FUNCTION f_explode(
+        p_text varchar2,
+        p_delimiter varchar2
+    ) RETURN t_numbers IS
+    
+        lrList t_numbers := t_numbers();
+        lnCounter pls_integer := 0;
+        lcText varchar2(32000) := p_text;
+    
+    BEGIN
+        LOOP
+            lnCounter := instr(lcText, p_delimiter);
+
+            if lnCounter > 0 then
+                lrList.extend(1);
+                lrList(lrList.count) := substr(lcText, 1, lnCounter - 1);
+                lcText := substr(lcText, lnCounter + length(p_delimiter));
+            else
+                lrList.extend(1);
+                lrList(lrList.count) := lcText;
+                RETURN lrList;
+            end if;
+            
+        END LOOP;
+    END f_explode;
     
 BEGIN
     --initial values to determine version
@@ -826,9 +871,15 @@ BEGIN
     FOR t IN 1 .. 40 LOOP
         p_debug(lrValues(t), 4);
         
+        /*
         SELECT to_number(column_value) a
         BULK COLLECT INTO lrData
         FROM XMLTABLE(lrValues(t));
+        */
+        lrData := f_explode(
+            p_text => lrValues(t),
+            p_delimiter => ','
+        );
 
         p_debug('Value on position ' || lnPosition || ': ' || lrData(lnPosition), 2);
         

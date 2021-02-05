@@ -14,6 +14,9 @@ create or replace PACKAGE      ZT_QR AS
     1.2        15/12/2019  Zoran Tica       Fixed "_" and "%" BUG
     1.3        13/03/2020  Zoran Tica       Added function f_qr_as_long_raw
     1.4        07/01/2021  Zoran Tica       Terminator BUG
+    1.5        05/02/2021  Zoran Tica       older databases compatibility (10g)
+                                            f_integer_2_binary - LISTAGG replaced with pure PL SQL
+                                            f_get_version - XMLTABLE replaced with local function f_explode
 
 
     ----------------------------------------------------------------------------
@@ -67,7 +70,7 @@ PROCEDURE p_generate_qr_data(
     p_error_correction varchar2, 
     p_qr OUT varchar2,
     p_matrix_size OUT pls_integer
-    );
+);
 
 
 /*
@@ -101,7 +104,7 @@ BEGIN
         p_debug_level => 2,
         p_qr => lcQR,
         p_matrix_size => lnMatrixSize
-        );
+    );
 END;
 /
 
@@ -114,7 +117,7 @@ PROCEDURE p_qr_debug(
     p_masking_out pls_integer default null,
     p_qr OUT varchar2,
     p_matrix_size OUT pls_integer
-    );
+);
 
 
 
@@ -134,7 +137,7 @@ FUNCTION f_qr_as_html_table(
     p_error_correction varchar2, --L, M, Q or H
     p_module_size_in_px pls_integer default 8, --module size in pixels
     p_margines boolean default false --margines around QR code (4 modules)
-    ) RETURN clob;
+) RETURN clob;
 
 /*
 Procedure prints HTML code for HTML table element using HTP.P procedure
@@ -151,7 +154,7 @@ PROCEDURE p_qr_as_html_table(
     p_error_correction varchar2, --L, M, Q or H
     p_module_size_in_px pls_integer default 8, --module size in pixels
     p_margines boolean default false --margines around QR code (4 modules)
-    );
+);
 
 
 /*
@@ -167,13 +170,13 @@ FUNCTION f_qr_as_bmp(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H
     p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
-    ) RETURN blob;
+) RETURN blob;
 
 FUNCTION f_qr_as_long_raw(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H
     p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
-    ) RETURN long raw;
+) RETURN long raw;
 
 
 /*
@@ -191,7 +194,7 @@ PROCEDURE p_qr_as_img_tag_base64(
     p_error_correction varchar2, --L, M, Q or H
     p_image_size_px pls_integer,
     p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
-    );
+);
 
 
 /*
@@ -201,6 +204,6 @@ PROCEDURE p_save_file(
     p_document blob,
     p_file_name varchar2,
     p_folder varchar2
-    );
+);
 
 END ZT_QR;
