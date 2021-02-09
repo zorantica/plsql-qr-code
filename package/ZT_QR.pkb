@@ -91,14 +91,14 @@ BEGIN
   RETURN bitor(p1, p2) - bitand(p1, p2);
 END;
 
-FUNCTION bin2dec(binval varchar2) RETURN pls_integer IS
-  result            NUMBER := 0;
+FUNCTION bin2dec(p_binval varchar2) RETURN pls_integer IS
+  lnResult number := 0;
 BEGIN
-  FOR t IN 1 .. length(binval) LOOP
-     result := (result * 2) + to_number(substr(binval, t, 1));
-  END LOOP;
+    FOR t IN 1 .. length(p_binval) LOOP
+        lnResult := (lnResult * 2) + to_number(substr(p_binval, t, 1));
+    END LOOP;
   
-  RETURN result;
+    RETURN lnResult;
 END bin2dec;
 
 /*
@@ -1841,7 +1841,7 @@ END;
 PROCEDURE p_generate_qr_data(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H (see bellow)
-    p_qr OUT varchar2, --generated QR code data in format row || newline (chr 10) || row || newline...; 1 for black module, 0 for white
+    p_qr OUT NOCOPY varchar2, --generated QR code data in format row || newline (chr 10) || row || newline...; 1 for black module, 0 for white
     p_matrix_size OUT pls_integer --matrix size in modules (21, 25, 29...)
     ) IS
     
@@ -1868,7 +1868,7 @@ PROCEDURE p_qr_debug(
     p_debug boolean default true,  --should DBMS OUTPUT be printed
     p_debug_level pls_integer default 1,  --debug level (1, 2, 3...) - details to be printed in debug output
     p_masking_out pls_integer default null,
-    p_qr OUT varchar2,
+    p_qr OUT NOCOPY varchar2,
     p_matrix_size OUT pls_integer
     ) IS
     
@@ -1985,6 +1985,29 @@ BEGIN
 END f_qr_as_html_table;
 
 
+PROCEDURE p_print_clob_htp(
+    p_clob IN OUT NOCOPY clob
+) IS
+
+    lnFrom pls_integer := 1;
+    lnTo pls_integer;
+
+BEGIN
+    LOOP
+        lnTo := instr(p_clob, chr(10), lnFrom);
+        if lnTo = 0 then
+            lnTo := length(p_clob);
+        end if;
+    
+        htp.p(substr(p_clob, lnFrom, lnTo - lnFrom));
+        
+        lnFrom := lnTo + 1;
+        
+        EXIT WHEN lnTo = length(p_clob);
+    END LOOP;
+
+END p_print_clob_htp;
+
 
 
 PROCEDURE p_qr_as_html_table(
@@ -1995,8 +2018,6 @@ PROCEDURE p_qr_as_html_table(
     ) IS
     
     lcClob clob;
-    lnFrom pls_integer := 1;
-    lnTo pls_integer;
     
 BEGIN
     if p_data is null then
@@ -2006,6 +2027,9 @@ BEGIN
 
     lcClob := f_qr_as_html_table(p_data, p_error_correction, p_module_size_in_px, p_margines);
     
+    p_print_clob_htp(lcClob);
+    
+    /*
     LOOP
         lnTo := instr(lcClob, chr(10), lnFrom);
         if lnTo = 0 then
@@ -2018,6 +2042,7 @@ BEGIN
         
         EXIT WHEN lnTo = length(lcClob);
     END LOOP;
+    */
     
 END p_qr_as_html_table;
 
@@ -2057,9 +2082,9 @@ FUNCTION f_qr_as_bmp(
     lrLine raw(500);
     
 BEGIN
+    --if no data passed then return null
     if p_data is null then
         return null;
-        RAISE_APPLICATION_ERROR(-20000, 'no data to display.');
     end if;
 
     p_generate_qr_data(
@@ -2182,9 +2207,9 @@ FUNCTION f_qr_as_long_raw(
     lrLine raw(500);
     
 BEGIN
+    --if no data passed then return
     if p_data is null then
         return null;
-        RAISE_APPLICATION_ERROR(-20000, 'no data to display.');
     end if;
 
     p_generate_qr_data(
@@ -2287,6 +2312,7 @@ BEGIN
 END f_qr_as_long_raw;
 
 
+
 PROCEDURE p_qr_as_img_tag_base64(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H
@@ -2309,6 +2335,108 @@ BEGIN
     htp.prn('" alt="qr code" width="' || p_image_size_px || 'px" height = "' || p_image_size_px || 'px" />');
     
 END;
+
+
+
+FUNCTION f_qr_as_svg(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_module_size_px pls_integer default 8,  --modul size in pixels
+    p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
+    p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
+    p_background_color varchar2 default 'white',
+    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+) RETURN clob IS
+
+    lcQR varchar2(32727);
+    lnMatrixSize pls_integer;
+    
+    lnCanvasSize pls_integer;
+    lnX pls_integer;
+    lnY pls_integer;
+    
+    lcClob clob;
+
+    PROCEDURE p_add_clob(lcText varchar2) IS
+    BEGIN
+        lcClob := lcClob || lcText; -- || chr(10);
+    END;
+    
+BEGIN
+    if p_data is null then
+        lcClob := 'no data to display.';
+        RETURN lcClob;
+    end if;
+
+
+    p_generate_qr_data(
+        p_data => p_data,
+        p_error_correction => p_error_correction, 
+        p_qr => lcQR,
+        p_matrix_size => lnMatrixSize
+    );
+
+    --canvas size and top left coordinate of first module (dependent of margins parameter)
+    lnCanvasSize := (lnMatrixSize + (CASE WHEN p_margines_yn = 'Y' THEN 8 ELSE 0 END) ) * p_module_size_px;
+    lnX := CASE WHEN p_margines_yn = 'Y' THEN 4 * p_module_size_px ELSE 0 END;
+    lnY := lnX;
+
+    --init SVG tag
+    p_add_clob('<svg width="' || lnCanvasSize || '" height="' || lnCanvasSize || '" style="background-color: ' || nvl(p_background_color, 'white') || ';" xmlns="http://www.w3.org/2000/svg">');
+    
+    --draw black modules (background is already white)
+    FOR t IN 1 .. length(lcQR) LOOP
+        
+        if substr(lcQR, t, 1) = '1' then
+            p_add_clob('<rect x="' || lnX || '" y="' || lnY || '" width="' || p_module_size_px || '" height="' || p_module_size_px || '" fill="' || nvl(p_module_color, 'black') || '" ' || CASE WHEN p_module_rounded_px > 0 THEN 'rx="' || p_module_rounded_px || '"' ELSE null END || '/>');
+            lnX := lnX + p_module_size_px;
+            
+        elsif substr(lcQR, t, 1) = chr(10) then
+            lnX := CASE WHEN p_margines_yn = 'Y' THEN 4 * p_module_size_px ELSE 0 END;
+            lnY := lnY + p_module_size_px;
+            
+        else 
+            lnX := lnX + p_module_size_px;
+        
+        end if;
+        
+    END LOOP;
+    
+    --finish SVG
+    p_add_clob('</svg>');
+    
+    RETURN lcClob;
+
+END f_qr_as_svg;
+
+
+PROCEDURE p_qr_as_svg(
+    p_data varchar2,  --data going to be encoded into QR code
+    p_error_correction varchar2, --L, M, Q or H
+    p_module_size_px pls_integer default 8,  --modul size in pixels
+    p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
+    p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
+    p_background_color varchar2 default 'white',
+    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+) IS
+
+    lcClob clob;
+    
+BEGIN
+    lcClob := ZT_QR.f_qr_as_svg(
+        p_data => p_data,
+        p_error_correction => p_error_correction,
+        p_margines_yn => p_margines_yn,
+        p_module_size_px => p_module_size_px,
+        p_module_color => p_module_color,
+        p_background_color => p_background_color,
+        p_module_rounded_px => p_module_rounded_px
+    );
+    
+    p_print_clob_htp(lcClob);
+    
+END p_qr_as_svg;
+
 
 PROCEDURE p_save_file(
     p_document blob,
