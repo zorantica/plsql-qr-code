@@ -51,11 +51,11 @@ For older versions of APEX, which use deprecated "Function" API interface use pl
 For calculation and graphic representation of QR Code there are following parameters:
 - Error correction level (4 different levels used for QR Code calculation)
 - Margines (Yes/No - show 4 modules margine around QR Code or not)
-- Display type (HTML table or BMP image)
+- Display type (SVG image (default), HTML table or BMP image)
 - Module size (used when "HTML table" or "SVG image" display type is selected - defines moduze size in pixels)
 - Image size (used when "BMP image" display type is selected - defines image size in pixels)
 - Module color (used when "SVG image" display type is selected - defines module color; colors can be defined as named colors (for example black, red, white...), using rgb function (for example rgb(255, 0, 0) ) or HEX values (for example #FF0000) )
-- Background color (used when "SVG image" display type is selected - defines QR code background color; colors can be defined as named colors (for example black, red white...), using rgb function (for example rgb(255, 0, 0) ) or HEX values (for example #FF0000) )
+- Background color (used when "SVG image" display type is selected - defines QR code background color; colors can be defined as named colors (for example black, red, white...), using rgb function (for example rgb(255, 0, 0) ) or HEX values (for example #FF0000) )
 - Rounded module edges (used when "SVG image" display type is selected - defines if modules should have rounded edges; if size of this parameter is half the module size (or larger) then modules are represented as circles)
 
 ## Demo Application
