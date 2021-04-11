@@ -2009,6 +2009,25 @@ BEGIN
 END p_print_clob_htp;
 
 
+PROCEDURE p_print_clob_htp_dbms_lob(
+    p_clob IN OUT NOCOPY clob
+) IS
+
+    L_POSITION NUMBER;
+    L_LENGTH NUMBER;
+    L_BUFFER VARCHAR(8000 CHAR);
+
+BEGIN
+    L_LENGTH := DBMS_LOB.GETLENGTH(p_clob);
+    L_POSITION := 1;
+    LOOP
+    EXIT WHEN L_POSITION > L_LENGTH ;
+    L_BUFFER := DBMS_LOB.SUBSTR(p_clob, 8000, L_POSITION);
+    HTP.PRN(L_BUFFER);
+    L_POSITION := L_POSITION + 8000;
+    END LOOP;
+END p_print_clob_htp_dbms_lob;
+
 
 PROCEDURE p_qr_as_html_table(
     p_data varchar2,  --data going to be encoded into QR code
@@ -2359,7 +2378,7 @@ FUNCTION f_qr_as_svg(
 
     PROCEDURE p_add_clob(lcText varchar2) IS
     BEGIN
-        lcClob := lcClob || lcText; -- || chr(10);
+        lcClob := lcClob || lcText || chr(10);
     END;
     
 BEGIN
