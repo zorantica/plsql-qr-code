@@ -210,8 +210,15 @@ p_module_size_px - width and height of one module
 p_module_color - module color; colors can be defined as named colors (for example black, red, white...), using rgb function (for example rgb(255, 0, 0) ) or HEX values (for example #FF0000)
 p_background_color - background color; colors can be defined as named colors (for example black, red white...), using rgb function (for example rgb(255, 0, 0) ) or HEX values (for example #FF0000)
 p_module_rounded_px - if modules should have rounded edges (if size of this parameter is half the module size (or larger) then modules are represented as circles)
+p_logo_yn - should logo be displayed on not (values Y / N)
+p_logo_size_percent - logo background rectangle size (in percentages) related to QR code size
+p_logo_image - logo image (URL reference or base64 content)
+p_logo_back_rect_yn - should logo background rectangle be displayed or not
+p_logo_back_rect_color - logo background rectangle color
+p_logo_back_rect_round_px - logo background rectangle rounded edges
+p_logo_margine_px - a margine between logo and background rectangle
 
-Procedure prints SVG image using HTP.P procedure (can be used to print SVG image directly in HTML code)
+Procedure prints SVG image using HTP.P procedure (can be used to print SVG image directly into HTML code)
 */
 FUNCTION f_qr_as_svg(
     p_data varchar2,  --data going to be encoded into QR code
@@ -220,7 +227,14 @@ FUNCTION f_qr_as_svg(
     p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
     p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
     p_background_color varchar2 default 'white',
-    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+    p_module_rounded_px pls_integer default 0,  --0 - sharp corners; > 0 - rounded in pixels
+    p_logo_yn varchar2 default 'N',
+    p_logo_size_percent number default 20,
+    p_logo_image clob default null,
+    p_logo_back_rect_yn varchar2 default 'Y',
+    p_logo_back_rect_color varchar2 default 'white',
+    p_logo_back_rect_round_px pls_integer default 0,
+    p_logo_margine_px number default 5
 ) RETURN clob;
 
 PROCEDURE p_qr_as_svg(
@@ -230,7 +244,14 @@ PROCEDURE p_qr_as_svg(
     p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
     p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
     p_background_color varchar2 default 'white',
-    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+    p_module_rounded_px pls_integer default 0,  --0 - sharp corners; > 0 - rounded in pixels
+    p_logo_yn varchar2 default 'N',
+    p_logo_size_percent number default 20,
+    p_logo_image clob default null,
+    p_logo_back_rect_yn varchar2 default 'Y',
+    p_logo_back_rect_color varchar2 default 'white',
+    p_logo_back_rect_round_px pls_integer default 0,
+    p_logo_margine_px number default 5
 );
 
 

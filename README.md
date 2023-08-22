@@ -15,6 +15,7 @@ Item-type APEX plugin uses PL/SQL package for calculations and graphical impleme
 - 1.6 - older databases compatilbility (10g)
 - 1.7 - Numeric mode BUG with "0" at the beginning of triplet group
 - 2.0 - SVG image files support
+- 2.1 - Show logo in QR code
 
 ## Install PL/SQL package
 - download 2 script files from "package" directory 

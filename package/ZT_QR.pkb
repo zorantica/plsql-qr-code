@@ -2364,7 +2364,14 @@ FUNCTION f_qr_as_svg(
     p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
     p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
     p_background_color varchar2 default 'white',
-    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+    p_module_rounded_px pls_integer default 0,  --0 - sharp corners; > 0 - rounded in pixels
+    p_logo_yn varchar2 default 'N',
+    p_logo_size_percent number default 20,
+    p_logo_image clob default null,
+    p_logo_back_rect_yn varchar2 default 'Y',
+    p_logo_back_rect_color varchar2 default 'white',
+    p_logo_back_rect_round_px pls_integer default 0,
+    p_logo_margine_px number default 5
 ) RETURN clob IS
 
     lcQR varchar2(32727);
@@ -2420,7 +2427,32 @@ BEGIN
         end if;
         
     END LOOP;
-    
+
+
+    --add logo (optional)
+    if p_logo_yn = 'Y' then
+        DECLARE
+            lnLogoBckWidth number;
+            lnLogoBckPos number;
+            lnLogoWidth number;
+            lnLogoPos number;
+            
+        BEGIN
+            lnLogoBckWidth := round(lnMatrixSize * p_module_size_px * p_logo_size_percent / 100, 2);
+            lnLogoBckPos := (lnCanvasSize / 2) - (lnLogoBckWidth / 2);
+            lnLogoWidth := lnLogoBckWidth - p_logo_margine_px * 2;
+            lnLogoPos := lnLogoBckPos + p_logo_margine_px;
+
+            if p_logo_back_rect_yn = 'Y' then
+                p_add_clob('<rect x="0" y="0" width="' || lnLogoBckWidth || '" height="' || lnLogoBckWidth || '" fill="' || p_logo_back_rect_color || '" rx="' || p_logo_back_rect_round_px || '" transform="translate(' || lnLogoBckPos || ', ' || lnLogoBckPos || ')" />');
+            end if;
+
+            p_add_clob('<image x="' || lnLogoPos || '" y="' || lnLogoPos || '" width="' || lnLogoWidth || '" height="' || lnLogoWidth || '" href="' || p_logo_image || '" />');
+
+        END;
+    end if;
+
+
     --finish SVG
     p_add_clob('</svg>');
     
@@ -2436,7 +2468,14 @@ PROCEDURE p_qr_as_svg(
     p_margines_yn varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
     p_module_color varchar2 default 'black',  --colors are defined as SVG named colors OR rgb (with # or rgb function)
     p_background_color varchar2 default 'white',
-    p_module_rounded_px pls_integer default 0  --0 - sharp corners; > 0 - rounded in pixels
+    p_module_rounded_px pls_integer default 0,  --0 - sharp corners; > 0 - rounded in pixels
+    p_logo_yn varchar2 default 'N',
+    p_logo_size_percent number default 20,
+    p_logo_image clob default null,
+    p_logo_back_rect_yn varchar2 default 'Y',
+    p_logo_back_rect_color varchar2 default 'white',
+    p_logo_back_rect_round_px pls_integer default 0,
+    p_logo_margine_px number default 5
 ) IS
 
     lcClob clob;
@@ -2449,9 +2488,16 @@ BEGIN
         p_module_size_px => p_module_size_px,
         p_module_color => p_module_color,
         p_background_color => p_background_color,
-        p_module_rounded_px => p_module_rounded_px
+        p_module_rounded_px => p_module_rounded_px,
+        p_logo_yn => p_logo_yn,
+        p_logo_size_percent => p_logo_size_percent,
+        p_logo_image => p_logo_image,
+        p_logo_back_rect_yn => p_logo_back_rect_yn,
+        p_logo_back_rect_color => p_logo_back_rect_color,
+        p_logo_back_rect_round_px => p_logo_back_rect_round_px,
+        p_logo_margine_px => p_logo_margine_px
     );
-    
+
     p_print_clob_htp(lcClob);
     
 END p_qr_as_svg;
