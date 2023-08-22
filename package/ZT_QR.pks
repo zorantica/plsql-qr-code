@@ -18,6 +18,7 @@ create or replace PACKAGE      ZT_QR AUTHID DEFINER AS
                                             f_integer_2_binary - LISTAGG replaced with pure PL SQL
                                             f_get_version - XMLTABLE replaced with local function f_explode
     2.0        09/02/2021  Zoran Tica       SVG files support
+    2.1        21/08/2023  Zoran Tica       Display logo in QR code (for SVG QR Code representation)
 
 
     ----------------------------------------------------------------------------
