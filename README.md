@@ -16,7 +16,7 @@ Item-type APEX plugin uses PL/SQL package for calculations and graphical impleme
 - 1.7 - Numeric mode BUG with "0" at the beginning of triplet group
 - 2.0 - SVG image files support
 - 2.1 - Show logo in QR code
-- 2.2 - Select a QR code and background color for BMP representation
+- 2.2 - Select a QR code and background color for BMP representation (thank You k0mita for the contribution!)
 
 ## Install PL/SQL package
 - download 2 script files from "package" directory 
