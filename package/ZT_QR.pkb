@@ -2088,7 +2088,9 @@ END unsigned_int;
 FUNCTION f_qr_as_bmp(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H
-    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    p_margines varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
+    p_foreground_color varchar2 default '000000', -- HEX representation of the RGB values of the foreground color
+    p_background_color varchar2 default 'FFFFFF'-- HEX representation of the RGB values of the background color
     ) RETURN blob IS
     
     lcQR varchar2(32727);
@@ -2139,9 +2141,9 @@ BEGIN
     dbms_lob.append(lbBlob, unsigned_int(0));         -- Pos 50, Important colors
 
     --Colors
-    dbms_lob.append(lbBlob, unsigned_int(16777215));  -- White (FF FF FF 00)
-    dbms_lob.append(lbBlob, unsigned_int(0));         -- Black (00 00 00 00)
-    
+    dbms_lob.append(lbBlob, unsigned_int(to_number(p_background_color, 'xxxxxx')));
+    dbms_lob.append(lbBlob, unsigned_int(to_number(p_foreground_color, 'xxxxxx')));
+   
     
     
     --Data

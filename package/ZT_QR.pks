@@ -1,7 +1,7 @@
-create or replace PACKAGE      ZT_QR AUTHID DEFINER AS
+ï»¿create or replace PACKAGE      ZT_QR AUTHID DEFINER AS
 /******************************************************************************
     Author:     Zoran Tica
-                ZT-TECH, racunalniške storitve s.p.
+                ZT-TECH, racunalniï¿½ke storitve s.p.
                 http://www.zt-tech.eu
     
     PURPOSE:    A package for QR code data and image generation 
@@ -108,7 +108,6 @@ BEGIN
         p_matrix_size => lnMatrixSize
     );
 END;
-/
 
 */
 PROCEDURE p_qr_debug(
@@ -167,11 +166,26 @@ IN parameters:
 p_data - data that is going to be encoded into QR code
 p_error_correction - error correction level (values L, M, Q or H)
 p_margines - should white margine around QR code (4 modules wide) be generated
+p_foreground_color -- HEX representation of the RGB values of the foreground color (default black)
+p_background_color -- HEX representation of the RGB values of the background color  (default white)
+
+Suggested HEX foreground colors:
+   Blue    - 002db3
+   Red     - 990000 
+   Green   - 008000
+   Brown   - 663300
+   Orange  - ff9900
+   Pink    - cc0066
+   Magenta - cc00cc
+   Gray    - 737373
 */
+
 FUNCTION f_qr_as_bmp(
     p_data varchar2,  --data going to be encoded into QR code
     p_error_correction varchar2, --L, M, Q or H
-    p_margines varchar2 default 'N' --margines around QR code (4 modules) - values Y or N
+    p_margines varchar2 default 'N', --margines around QR code (4 modules) - values Y or N
+    p_foreground_color varchar2 default '000000', -- HEX representation of the RGB values of the foreground color
+    p_background_color varchar2 default 'FFFFFF'-- HEX representation of the RGB values of the background color    
 ) RETURN blob;
 
 FUNCTION f_qr_as_long_raw(
@@ -267,3 +281,4 @@ PROCEDURE p_save_file(
 );
 
 END ZT_QR;
+/
